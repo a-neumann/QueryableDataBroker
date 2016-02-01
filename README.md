@@ -15,8 +15,8 @@ public class Unicorn
 ```
 
 ```cs
-// Unicorns.All - IQueryable<Unicorn>
-var broker = new QueryBroker<Unicorn, Guid>(Unicorns.All, u => u.Id);
+// Unicorns.All is an IQueryable<Unicorn>
+IQueryableDataBroker<T> broker = new QueryBroker<Unicorn, Guid>(Unicorns.All, u => u.Id);
 
 var queries = new [] {
     PropertyQuery.Create("name", "da*"),
@@ -26,7 +26,7 @@ var queries = new [] {
 // results are all Unicorns from Unicorns.All with
 //     Name starting with "da" and 
 //     BrithDate greater than 2016-01-10
-var results = broker.Find(queries);
+IEnumerable<Unicorn> results = broker.Find(queries);
 ```
 
-##ASP.Net MVC use case example with Controller following *very* soon!
+###ASP.Net MVC use case example with Controller following **very** soon!
