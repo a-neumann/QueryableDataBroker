@@ -40,6 +40,26 @@ namespace QueryableDataBroker.Tests
         }
 
         [Fact]
+        public void CanApplyQueries()
+        {
+            var broker = new QueryBroker<Unicorn, Guid>(Unicorns.All, u => u.Id);
+
+            var queries = new [] {
+                PropertyQuery.Create("name", "da*"),
+                PropertyQuery.Create("birthdate", "2016-01-01*"),
+            };
+
+            var results = broker.Find(queries);
+
+            var shouldFind = Unicorns.GetAtLeast(u => 
+                u.Name.StartsWith("da", StringComparison.CurrentCultureIgnoreCase) && 
+                u.BirthDate >= new DateTime(2016, 1, 1)
+                );
+
+            Assert.True(results.SequenceEqual(shouldFind));
+        }
+
+        [Fact]
         public void CanCreateReport()
         {
             var broker = new QueryBroker<Unicorn, Guid>(Unicorns.All, u => u.Id);
