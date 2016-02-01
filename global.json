@@ -1,0 +1,7 @@
+{
+    "projects": [
+        "QueryableDataBroker",
+        "QueryableDataBroker.Tests",
+        "QueryableDataBroker.MVCSample"
+    ]
+}
