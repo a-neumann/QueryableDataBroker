@@ -11,8 +11,8 @@ namespace QueryableDataBroker
     public interface IQueryableDataBroker<T>
     {
         IQueryable<T> GetByIds(IEnumerable<string> ids);
-        IQueryable<T> Find(IEnumerable<PropertyQuery> queries);
-        QueryReport Query(IEnumerable<PropertyQuery> queries, int skip = 0, int get = 0);
+        IQueryable<T> GetItems(IEnumerable<PropertyQuery> queries);
+        QuerySummary Query(IEnumerable<PropertyQuery> queries, int skip = 0, int get = 0);
     }
 
     public class QueryBroker<T, K> : IQueryableDataBroker<T> where K : IEquatable<K>
@@ -46,7 +46,7 @@ namespace QueryableDataBroker
 
         public IQueryable<T> Source { get; private set; }
         public IList<IPropertyTypeHandler<T>> PropertyTypeHandlers { get; private set; }
-        public int GetMax { get; set; }
+        public int PageSize { get; set; }
 
         public IEnumerable<PropertyInfo> Properties
         {
@@ -91,19 +91,32 @@ namespace QueryableDataBroker
 
         public IQueryable<T> GetByIds(IEnumerable<string> ids)
         {
-            List<K> keys = ids.Select(i => (K)this.ConvertToKey(i)).ToList();
+            var keys = new List<K>();
+            foreach(string i in ids)
+            {
+                try
+                {
+                    keys.Add((K)this.ConvertToKey(i));
+                }
+                catch
+                {
+                    var keyTypeName = this.KeyType.Name;
+                    throw new FormatException($"ID {i} cannot be converted to {keyTypeName}");
+                }
+            }
+
             var keysConst = Expression.Constant(keys);
 
             var paramExp = this.KeySelector.Parameters[0];
             var propEx = (MemberExpression)this.KeySelector.Body;
-            var idsContain = Expression.Call(keysConst, "Contains", Type.EmptyTypes, propEx);
+            var idsContain = Expression.Call(keysConst, "Contains", new Type[] { }, propEx);
 
             var lambda = ExpressionHelper.Lambda<T, bool>(idsContain, paramExp);
 
             return this.Source.Where(lambda);
         }
 
-        public IQueryable<T> Find(IEnumerable<PropertyQuery> queries)
+        public IQueryable<T> GetItems(IEnumerable<PropertyQuery> queries)
         {
             var filtered = this.Source;
 
@@ -129,27 +142,25 @@ namespace QueryableDataBroker
             return filtered;
         }
 
-        public QueryReport Query(IEnumerable<PropertyQuery> queries, int skip = 0, int get = 0)
+        public QuerySummary Query(IEnumerable<PropertyQuery> queries, int page = 1, int pageSize = 0)
         {
             var start = DateTime.Now;
 
-            var filtered = this.Find(queries).Skip(skip);
+            pageSize = pageSize > 0 ? pageSize : this.PageSize;
 
-            get = get > 0 ? get : this.GetMax;
-            if (get > 0)
+            int skip = (page - 1) * pageSize;
+            var filtered = this.GetItems(queries).Skip(skip);
+
+            if (pageSize > 0)
             {
-                filtered = filtered.Take(get);
+                filtered = filtered.Take(page * pageSize);
             }
 
-            var paramExp = this.KeySelector.Parameters[0];
-            var keyPropEx = (MemberExpression)this.KeySelector.Body;
-            var keyToString = ExpressionHelper.CallMethod(keyPropEx, "ToString");
-            var keysToString = ExpressionHelper.Lambda<T, string>(keyToString, paramExp);
+            var keys = filtered.Select(this.KeySelector).Select(k => k.ToString()).ToList();
 
-            var keys = filtered.Select(keysToString.Compile()).ToList<string>();
             long total = this.Source.LongCount();
 
-            var res = new QueryReport(keys, skip, total, start);
+            var res = new QuerySummary(keys, page, pageSize, total);
 
             return res;
         }

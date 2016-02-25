@@ -1,0 +1,29 @@
+{
+    "version": "1.0.0-*",
+    "description": "QueryableDataBroker.Mvc Class Library",
+    "authors": [ "Andreas Neumann" ],
+    "tags": [ "" ],
+    "projectUrl": "",
+    "licenseUrl": "",
+    "frameworks": {
+        "dnxcore50": {
+            "dependencies": {
+                "Microsoft.CSharp": "4.0.1-*",
+                "System.Collections": "4.0.11-*",
+                "System.Linq": "4.0.1-*",
+                "System.Runtime": "4.0.21-*",
+                "System.Threading": "4.0.11-*",
+                "System.Linq.Expressions": "4.0.10-*",
+                "System.Linq.Queryable": "4.0.1-*",
+                "System.Text.RegularExpressions": "4.0.11-*",
+                "System.ComponentModel": "4.0.1-*"
+            }
+        },
+        "dnx451": { }
+    },
+    "dependencies": {
+        "Microsoft.AspNet.Mvc.Core": "6.0.0-rc1-final",
+        "Microsoft.AspNet.Mvc.ViewFeatures": "6.0.0-rc1-final",
+        "QueryableDataBroker": "1.0.0-*"
+    }
+}

@@ -26,7 +26,7 @@ var queries = new [] {
 // results are all Unicorns from Unicorns.All with
 //     Name starting with "da" and 
 //     BrithDate greater than 2016-01-10
-IEnumerable<Unicorn> results = broker.Find(queries);
+IEnumerable<Unicorn> results = broker.GetItems(queries);
 ```
 
 ###ASP.Net MVC use case example with Controller following **very** soon!

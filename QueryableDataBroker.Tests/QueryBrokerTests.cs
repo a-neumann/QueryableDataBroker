@@ -49,7 +49,7 @@ namespace QueryableDataBroker.Tests
                 PropertyQuery.Create("birthdate", "2016-01-01*"),
             };
 
-            var results = broker.Find(queries);
+            var results = broker.GetItems(queries);
 
             var shouldFind = Unicorns.GetAtLeast(u => 
                 u.Name.StartsWith("da", StringComparison.CurrentCultureIgnoreCase) && 
@@ -60,19 +60,16 @@ namespace QueryableDataBroker.Tests
         }
 
         [Fact]
-        public void CanCreateReport()
+        public void CanCreateSummary()
         {
             var broker = new QueryBroker<Unicorn, Guid>(Unicorns.All, u => u.Id);
 
-            int skip = 2;
-            int max = 3;
+            var summary = broker.Query(new PropertyQuery[] { });
 
-            var report = broker.Query(new PropertyQuery[] { }, skip, max);
-
-            Assert.Equal(skip, report.Skipped);
-            Assert.NotEmpty(report.IDs);
-            Assert.InRange(report.IDs.Count(), 1, max);
-            Assert.Equal(Unicorns.All.LongCount(), report.Total);
+            Assert.Equal(1, summary.Page);
+            Assert.NotEmpty(summary.IDs);
+            Assert.InRange(summary.IDs.Count(), 1, Unicorns.All.Count());
+            Assert.Equal(Unicorns.All.LongCount(), summary.Total);
         }
     }
 }
