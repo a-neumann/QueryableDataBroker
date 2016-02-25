@@ -8,6 +8,10 @@ using QueryableDataBroker.MVCSample;
 using System;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+using QueryableDataBroker.MVCSample.Models;
+using System.Linq;
 
 namespace QueryableDataBroker.MVCSample.Tests
 {
@@ -70,9 +74,46 @@ namespace QueryableDataBroker.MVCSample.Tests
 		[Fact]
 		public async void CanConnect()
 		{
-			var result = await this.SendRequest(HttpMethod.Get, "/unicorn/canrespond");
+			var response = await this.SendRequest(HttpMethod.Get, "/unicorn/canrespond");
 
-			Assert.True(result.StatusCode == System.Net.HttpStatusCode.OK);
+			Assert.True(response.StatusCode == System.Net.HttpStatusCode.OK);
+		}
+
+		[Fact]
+		public async void CanGetByIdList()
+		{
+			var list = new List<string>() {
+				"66fc62cf-27d8-439e-bb6a-e786db9f1a2a",
+				"6acc7787-ce29-4f4e-802a-8954ff65bf00",
+				"d7f2c96e-f2ec-4155-bb78-e127f213dd6c"
+			};
+			var response = await this.SendRequest(HttpMethod.Get, "/unicorn/" + String.Join(",", list));
+
+			Assert.True(response.IsSuccessStatusCode);
+
+			string body = await response.Content.ReadAsStringAsync();
+			var unicorns = JsonConvert.DeserializeObject<IEnumerable<Unicorn>>(body);
+
+			Assert.NotEmpty(unicorns);
+
+			var unicornWithFirstId = unicorns.FirstOrDefault(u => u.Id.ToString() == list[0]);
+			Assert.NotNull(unicornWithFirstId);
+		}
+
+		[Fact]
+		public async void CanGetByQuery()
+		{
+			var response = await this.SendRequest(HttpMethod.Get, "/unicorn?hornlength=113~119");
+
+			Assert.True(response.IsSuccessStatusCode);
+
+			string body = await response.Content.ReadAsStringAsync();
+			var unicorns = JsonConvert.DeserializeObject<IEnumerable<Unicorn>>(body);
+
+			Assert.NotEmpty(unicorns);
+
+			var unicorn = unicorns.FirstOrDefault(u => u.HornLenght >= 113 && u.HornLenght <= 119);
+			Assert.NotNull(unicorn);
 		}
 	}
 }

@@ -70,7 +70,7 @@ namespace QueryableDataBroker.Mvc
             return queries;
         }
 
-        [HttpGet("{idList}")]
+        [HttpGet("{idList?}")]
         public IEnumerable<T> Get(string idList)
         {
             if (String.IsNullOrWhiteSpace(idList))
